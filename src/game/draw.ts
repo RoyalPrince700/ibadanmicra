@@ -8,6 +8,7 @@ import {
   ONCOMING_INNER,
   ONCOMING_OUTER,
   WAIT_LANE,
+  WALK_CENTER,
   WALK_LEFT,
   WALK_RIGHT,
   laneLine,
@@ -218,6 +219,7 @@ export function drawSegment(
   dashed: boolean,
   rumbleWidth: number,
   edge: string,
+  rail = false,
 ) {
   const top = Math.min(y1, y2)
   const bottom = Math.max(y1, y2)
@@ -239,6 +241,21 @@ export function drawSegment(
   ctx.fillStyle = '#1b4d3e'
   band(ctx, x1, y1, w1, x2, y2, w2, WALK_LEFT + 0.012, WALK_LEFT + 0.03)
   band(ctx, x1, y1, w1, x2, y2, w2, WALK_RIGHT - 0.03, WALK_RIGHT - 0.012)
+
+  if (rail) {
+    ctx.fillStyle = '#3a342c'
+    band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER - 0.14, WALK_CENTER + 0.14)
+    if (dashed) {
+      ctx.fillStyle = '#6b4a2a'
+      band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER - 0.1, WALK_CENTER + 0.1)
+    }
+    ctx.fillStyle = BRAND.rustDeep
+    band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER - 0.075, WALK_CENTER - 0.055)
+    band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER + 0.055, WALK_CENTER + 0.075)
+    ctx.fillStyle = BRAND.gold
+    band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER - 0.068, WALK_CENTER - 0.06)
+    band(ctx, x1, y1, w1, x2, y2, w2, WALK_CENTER + 0.06, WALK_CENTER + 0.068)
+  }
 
   ctx.fillStyle = road
   band(ctx, x1, y1, w1, x2, y2, w2, DRIVE_LEFT, DRIVE_RIGHT)
@@ -456,6 +473,42 @@ const painters: Record<SpriteKind, (ctx: CanvasRenderingContext2D, s: number, la
     ctx.fillStyle = '#1a120b'
     ctx.fillRect(-s * 0.1, -s * 0.24, s * 0.07, s * 0.24)
     ctx.fillRect(s * 0.03, -s * 0.24, s * 0.07, s * 0.24)
+  },
+  stall: (ctx, s, text) => {
+    ctx.fillStyle = 'rgba(0,0,0,0.22)'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, s * 0.28, s * 0.05, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#6b4a2a'
+    ctx.fillRect(-s * 0.22, -s * 0.28, s * 0.44, s * 0.06)
+    ctx.fillRect(-s * 0.18, -s * 0.22, s * 0.04, s * 0.22)
+    ctx.fillRect(s * 0.14, -s * 0.22, s * 0.04, s * 0.22)
+    const goods = ['#c4512c', '#f5c400', '#2f6a3e', '#e7c07a', '#8c3b22', '#f4e6c8']
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = goods[i % goods.length]
+      ctx.beginPath()
+      ctx.ellipse(-s * 0.14 + i * s * 0.09, -s * 0.34, s * 0.045, s * 0.035, 0, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.fillStyle = '#1a120b'
+    ctx.beginPath()
+    ctx.arc(s * 0.02, -s * 0.72, s * 0.08, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#1b4d3e'
+    roundRect(ctx, -s * 0.1, -s * 0.62, s * 0.22, s * 0.32, 3)
+    ctx.fill()
+    ctx.fillStyle = '#1a120b'
+    ctx.fillRect(-s * 0.08, -s * 0.3, s * 0.05, s * 0.16)
+    ctx.fillRect(s * 0.02, -s * 0.3, s * 0.05, s * 0.16)
+    ctx.fillStyle = '#c4512c'
+    ctx.beginPath()
+    ctx.arc(0, -s * 0.9, s * 0.2, Math.PI, 0)
+    ctx.fill()
+    ctx.fillStyle = '#f5c400'
+    ctx.beginPath()
+    ctx.arc(-s * 0.05, -s * 0.9, s * 0.1, Math.PI, 0)
+    ctx.fill()
+    if (text) labelText(ctx, text.slice(0, 9), -s * 0.48, s * 0.4, Math.max(6, s * 0.08), '#f4e6c8')
   },
   kiosk: (ctx, s, text) => {
     ctx.fillStyle = 'rgba(0,0,0,0.2)'
@@ -677,6 +730,57 @@ const painters: Record<SpriteKind, (ctx: CanvasRenderingContext2D, s: number, la
     ctx.fillRect(-s * 0.56, -s * 1.7, s * 1.12, s * 0.04)
     labelText(ctx, (text || 'IBADAN').toUpperCase(), -s * 1.86, s * 1.12, Math.max(8, s * 0.16), '#1b4d3e')
   },
+  coin: (ctx, s) => {
+    const t = performance.now() / 1000
+    const squash = 0.22 + Math.abs(Math.sin(t * 6)) * 0.78
+    const lift = s * 0.62 + Math.sin(t * 4) * s * 0.05
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, s * 0.18, s * 0.05, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#c99200'
+    ctx.beginPath()
+    ctx.ellipse(0, -lift, s * 0.22, s * 0.22 * squash, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#ffe56a'
+    ctx.beginPath()
+    ctx.ellipse(0, -lift, s * 0.14, s * 0.14 * squash, 0, 0, Math.PI * 2)
+    ctx.fill()
+    if (squash > 0.55) {
+      ctx.fillStyle = '#8c3b22'
+      ctx.font = `700 ${Math.max(7, s * 0.18)}px Outfit, sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('₦', 0, -lift)
+    }
+  },
+  boost: (ctx, s) => {
+    const t = performance.now() / 1000
+    const lift = s * 0.7 + Math.sin(t * 5) * s * 0.06
+    const pulse = 0.92 + Math.sin(t * 8) * 0.08
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, s * 0.2, s * 0.055, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#ff7a18'
+    ctx.beginPath()
+    ctx.arc(0, -lift, s * 0.26 * pulse, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#ffe08a'
+    ctx.beginPath()
+    ctx.arc(0, -lift, s * 0.16 * pulse, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#c4512c'
+    ctx.beginPath()
+    ctx.moveTo(s * 0.04, -lift - s * 0.16)
+    ctx.lineTo(-s * 0.1, -lift + s * 0.01)
+    ctx.lineTo(-s * 0.01, -lift + s * 0.01)
+    ctx.lineTo(-s * 0.06, -lift + s * 0.16)
+    ctx.lineTo(s * 0.1, -lift - s * 0.02)
+    ctx.lineTo(s * 0.01, -lift - s * 0.02)
+    ctx.closePath()
+    ctx.fill()
+  },
 }
 
 export function drawGantry(
@@ -686,18 +790,27 @@ export function drawGantry(
   w: number,
   label: string,
   viewWidth: number,
+  viewHeight = viewWidth * 0.62,
 ) {
   if (w < 14) return
   const leftPost = x + DRIVE_LEFT * w
   const rightPost = x + DRIVE_RIGHT * w
   const boardCenter = x + FOCUS_X * w
-  const boardW = Math.min(w * 1.15, viewWidth * 0.62)
-  const boardH = Math.max(16, Math.min(boardW * 0.2, viewWidth * 0.07))
-  const rise = Math.max(boardH + 12, Math.min(w * 0.78, viewWidth * 0.34))
-  const post = Math.max(2.5, Math.min(w * 0.03, 11))
+  const boardW = w * 1.02
+  const boardH = Math.max(12, boardW * 0.16)
+  // Rise with the road width so the board climbs off the top as you approach.
+  // Tall screens need a higher span or the sign sinks into the view.
+  const rise = w * Math.max(1.2, 1.65 * (viewHeight / Math.max(1, viewWidth)))
+  const post = Math.max(2, Math.min(w * 0.028, 14))
   const top = y - rise
   const boardX = boardCenter - boardW / 2
-  const boardY = top - boardH * 0.18
+  const boardY = top - boardH * 0.15
+  if (boardY + boardH < 0) return
+  const leaving = boardY < boardH
+  const alpha = leaving ? Math.max(0, (boardY + boardH) / (boardH * 2)) : 1
+  if (alpha < 0.05) return
+  ctx.save()
+  ctx.globalAlpha = alpha
 
   ctx.fillStyle = '#2c261f'
   ctx.fillRect(leftPost - post / 2, top, post, y - top)
@@ -737,6 +850,7 @@ export function drawGantry(
   ctx.translate(oncomingX, boardY + boardH * 0.2 + tagH / 2)
   labelText(ctx, 'ONCOMING', 0, tagW * 0.86, Math.max(7, tagH * 0.5), '#f4e6c8')
   ctx.restore()
+  ctx.restore()
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -748,6 +862,153 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.arcTo(x, y + h, x, y, radius)
   ctx.arcTo(x, y, x + w, y, radius)
   ctx.closePath()
+}
+
+export interface TrainEnd {
+  x: number
+  y: number
+  w: number
+}
+
+/**
+ * One coach of the median train, in road perspective.
+ * The side facing the Micra carries the slogan.
+ */
+export function drawTrainCar(
+  ctx: CanvasRenderingContext2D,
+  near: TrainEnd,
+  far: TrainEnd,
+  slogan: string,
+  role: 'engine' | 'coach' | 'tail',
+) {
+  if (near.w < 5 || far.w < 2) return
+  const half = 0.17
+  const off = WALK_CENTER
+  const body = role === 'engine' ? 0.5 : 0.44
+  const nl = near.x + (off - half) * near.w
+  const nr = near.x + (off + half) * near.w
+  const fl = far.x + (off - half) * far.w
+  const fr = far.x + (off + half) * far.w
+  const nh = near.w * body
+  const fh = far.w * body
+  const along = (t: number) => ({
+    x: nr + (fr - nr) * t,
+    y: near.y + (far.y - near.y) * t,
+    h: nh + (fh - nh) * t,
+    s: near.w + (far.w - near.w) * t,
+  })
+
+  ctx.save()
+  ctx.fillStyle = 'rgba(26, 18, 11, 0.28)'
+  poly(ctx, nl, near.y, nr + near.w * 0.03, near.y, fr + far.w * 0.02, far.y, fl, far.y)
+
+  ctx.fillStyle = role === 'engine' ? '#6e3018' : '#d9c7a4'
+  poly(ctx, nl, near.y, fl, far.y, fl, far.y - fh, nl, near.y - nh)
+
+  ctx.fillStyle = BRAND.rust
+  poly(ctx, nl, near.y - nh, nr, near.y - nh, fr, far.y - fh, fl, far.y - fh)
+  ctx.fillStyle = BRAND.gold
+  poly(ctx, nr, near.y - nh, nr, near.y - nh + nh * 0.06, fr, far.y - fh + fh * 0.06, fr, far.y - fh)
+
+  ctx.fillStyle = role === 'engine' ? BRAND.rust : BRAND.cream
+  poly(ctx, nr, near.y, fr, far.y, fr, far.y - fh, nr, near.y - nh)
+
+  ctx.fillStyle = role === 'engine' ? BRAND.ink : BRAND.rustDeep
+  poly(ctx, nr, near.y, fr, far.y, fr, far.y - fh * 0.14, nr, near.y - nh * 0.14)
+
+  ctx.fillStyle = BRAND.green
+  poly(ctx, nr, near.y - nh * 0.4, fr, far.y - fh * 0.4, fr, far.y - fh * 0.74, nr, near.y - nh * 0.74)
+
+  ctx.fillStyle = role === 'engine' ? '#9fd4c8' : '#e7f3ee'
+  const panes = role === 'engine' ? 3 : 5
+  for (let i = 0; i < panes; i++) {
+    const a = 0.12 + (i / panes) * 0.76
+    const b = a + 0.76 / panes - 0.035
+    const p0 = along(a)
+    const p1 = along(b)
+    poly(
+      ctx,
+      p0.x,
+      p0.y - p0.h * 0.46,
+      p1.x,
+      p1.y - p1.h * 0.46,
+      p1.x,
+      p1.y - p1.h * 0.68,
+      p0.x,
+      p0.y - p0.h * 0.68,
+    )
+  }
+
+  ctx.fillStyle = BRAND.gold
+  poly(ctx, nr, near.y - nh * 0.16, fr, far.y - fh * 0.16, fr, far.y - fh * 0.38, nr, near.y - nh * 0.38)
+
+  if (near.w > 22 && slogan) {
+    for (const t of [0.3, 0.68]) {
+      const spot = along(t)
+      if (spot.s < 20) continue
+      const band = Math.abs(spot.h * 0.28)
+      let size = Math.max(12, Math.min(band * 0.72, spot.s * 0.12))
+      ctx.save()
+      ctx.beginPath()
+      const a = along(Math.max(0.05, t - 0.18))
+      const b = along(Math.min(0.95, t + 0.18))
+      ctx.moveTo(a.x, a.y - a.h * 0.42)
+      ctx.lineTo(b.x, b.y - b.h * 0.42)
+      ctx.lineTo(b.x, b.y - b.h * 0.72)
+      ctx.lineTo(a.x, a.y - a.h * 0.72)
+      ctx.closePath()
+      ctx.clip()
+      ctx.fillStyle = BRAND.gold
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.font = `700 ${size}px Outfit, sans-serif`
+      const span = Math.hypot(b.x - a.x, b.y - a.y) * 0.92
+      while (size > 11 && ctx.measureText(slogan).width > span) {
+        size -= 1
+        ctx.font = `700 ${size}px Outfit, sans-serif`
+      }
+      ctx.fillText(slogan, spot.x, spot.y - spot.h * 0.57)
+      ctx.restore()
+    }
+  }
+
+  ctx.fillStyle = BRAND.ink
+  for (const t of role === 'engine' ? [0.22, 0.48, 0.78] : [0.18, 0.4, 0.62, 0.84]) {
+    const p = along(t)
+    const r = Math.max(1.3, p.s * 0.028)
+    ctx.beginPath()
+    ctx.arc(p.x - p.s * 0.02, p.y - r * 0.15, r, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = BRAND.gold
+    ctx.beginPath()
+    ctx.arc(p.x - p.s * 0.02, p.y - r * 0.15, r * 0.38, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = BRAND.ink
+  }
+
+  ctx.fillStyle = role === 'tail' ? BRAND.green : role === 'engine' ? BRAND.rustDeep : '#e7d3ae'
+  poly(ctx, nl, near.y, nr, near.y, nr, near.y - nh, nl, near.y - nh)
+  ctx.fillStyle = BRAND.gold
+  poly(ctx, nl, near.y - nh * 0.2, nr, near.y - nh * 0.2, nr, near.y - nh * 0.28, nl, near.y - nh * 0.28)
+  if (role === 'tail' && near.w > 16) {
+    ctx.save()
+    ctx.translate((nl + nr) / 2, near.y - nh * 0.55)
+    labelText(ctx, 'IBADAN', 0, Math.abs(nr - nl) * 0.82, Math.max(8, nh * 0.16), BRAND.gold)
+    ctx.restore()
+  } else if (role === 'engine' && near.w > 16) {
+    ctx.fillStyle = BRAND.cream
+    poly(ctx, nl + (nr - nl) * 0.18, near.y - nh * 0.42, nr - (nr - nl) * 0.18, near.y - nh * 0.42, nr - (nr - nl) * 0.22, near.y - nh * 0.62, nl + (nr - nl) * 0.22, near.y - nh * 0.62)
+    ctx.fillStyle = '#fff4c4'
+    ctx.beginPath()
+    ctx.arc(nl + (nr - nl) * 0.28, near.y - nh * 0.34, Math.max(1.4, near.w * 0.02), 0, Math.PI * 2)
+    ctx.arc(nl + (nr - nl) * 0.72, near.y - nh * 0.34, Math.max(1.4, near.w * 0.02), 0, Math.PI * 2)
+    ctx.fill()
+    ctx.save()
+    ctx.translate((nl + nr) / 2, near.y - nh * 0.78)
+    labelText(ctx, 'IBADAN', 0, Math.abs(nr - nl) * 0.8, Math.max(8, nh * 0.14), BRAND.gold)
+    ctx.restore()
+  }
+  ctx.restore()
 }
 
 /* ------------------------------------------------------------------ */
@@ -1198,6 +1459,38 @@ export interface CarPose {
   spin: number
   bob: number
   riders: number
+  boost: boolean
+}
+
+/** Speed streaks and a warm edge when the Micra is boosted. */
+export function drawBoostVibe(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  clock: number,
+  power: number,
+) {
+  if (power <= 0.04) return
+  ctx.save()
+  const streaks = 16
+  ctx.strokeStyle = '#ffe08a'
+  ctx.lineWidth = 2
+  ctx.globalAlpha = 0.28 * power
+  for (let i = 0; i < streaks; i++) {
+    const x = ((i * 137 + clock * 1400 * power) % (width + 120)) - 60
+    const y = ((i * 83) % Math.max(1, height - 40)) + 10
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x - 36 * power, y + 84)
+    ctx.stroke()
+  }
+  const glow = ctx.createRadialGradient(width / 2, height * 0.78, height * 0.08, width / 2, height * 0.62, height * 0.78)
+  glow.addColorStop(0, 'rgba(255, 160, 40, 0)')
+  glow.addColorStop(1, `rgba(255, 90, 10, ${0.28 * power})`)
+  ctx.globalAlpha = 1
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, width, height)
+  ctx.restore()
 }
 
 export interface Walker {
@@ -1349,6 +1642,24 @@ export function drawPlayer(
   ctx.fillStyle = '#163028'
   ctx.fillRect(-83 * u, -98 * u, 8 * u, 6 * u)
   ctx.fillRect(75 * u, -98 * u, 8 * u, 6 * u)
+
+  if (pose.boost) {
+    const flick = 0.65 + Math.abs(Math.sin(performance.now() / 32)) * 0.55
+    for (const side of [-34, 34]) {
+      ctx.fillStyle = '#ff4d00'
+      ctx.beginPath()
+      ctx.moveTo(side * u - 9 * u, -4 * u)
+      ctx.lineTo(side * u, 26 * u * flick)
+      ctx.lineTo(side * u + 9 * u, -4 * u)
+      ctx.fill()
+      ctx.fillStyle = '#ffe08a'
+      ctx.beginPath()
+      ctx.moveTo(side * u - 4 * u, -2 * u)
+      ctx.lineTo(side * u, 12 * u * flick)
+      ctx.lineTo(side * u + 4 * u, -2 * u)
+      ctx.fill()
+    }
+  }
 
   ctx.restore()
 }

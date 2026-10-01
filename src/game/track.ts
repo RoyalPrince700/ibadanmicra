@@ -1,8 +1,10 @@
 import { DISTRICTS, type District, type SpriteKind, type TrafficKind } from './districts'
-import { DRIVE_RIGHT, ONCOMING_OUTER, STOP_OFFSET, WAIT_LANE, WALK_CENTER, type LaneIndex } from './lanes'
+import { DRIVE_RIGHT, LANES, ONCOMING_OUTER, STOP_OFFSET, WAIT_LANE, WALK_CENTER, type LaneIndex } from './lanes'
 
 export const SEGMENT_LENGTH = 200
 export const RUMBLE = 3
+/** How many times longer each district runs. Hills scale with it, so the grade stays the same. */
+const AREA_SCALE = 4
 
 /** Speed the timeline is planned around. Slower driving just meets each beat a little later. */
 export const PLAN_SPEED = 2900
@@ -23,6 +25,8 @@ export interface Sprite {
 export interface Segment {
   index: number
   district: number
+  /** How many districts you have entered since the shift started. Keeps looping drops honest. */
+  visit: number
   curve: number
   p1: { world: { y: number; z: number }; camera: Cam; screen: Screen }
   p2: { world: { y: number; z: number }; camera: Cam; screen: Screen }
@@ -34,6 +38,14 @@ export interface Segment {
   edge: string
   rumbleWidth: number
   clipY: number
+  rail: boolean
+}
+
+/** A stretch where the median boards are a moving train instead. */
+export interface RailRun {
+  z0: number
+  z1: number
+  slogans: string[]
 }
 
 /**
@@ -67,6 +79,7 @@ interface Screen {
 }
 
 const KIOSK_BOARDS = ['GLO', 'POS', 'BUKA', 'PURE WATER', 'PROVISION', 'AMALA', 'SUYA']
+const STALL_GOODS = ['PEPPER', 'ASO-OKE', 'PLANTAIN', 'HERBS', 'GARRI', 'CORN', 'ORANGE', 'SUYA', 'YAM', 'WATER']
 
 /** Beat codes used in each district's `timeline` script. */
 type Beat = 'O' | 'S' | 'H' | 'L' | 'C' | 'Q' | 'P' | '.'
@@ -114,13 +127,14 @@ function mulberry32(seed: number) {
   }
 }
 
-function pushSegment(segments: Segment[], y: number, district: District, districtIndex: number) {
+function pushSegment(segments: Segment[], y: number, district: District, districtIndex: number, visit: number) {
   const n = segments.length
   const lastY = n === 0 ? 0 : segments[n - 1].p2.world.y
   const alt = Math.floor(n / RUMBLE) % 2 === 1
   segments.push({
     index: n,
     district: districtIndex,
+    visit,
     curve: 0,
     p1: blankPoint(lastY, n * SEGMENT_LENGTH),
     p2: blankPoint(y, (n + 1) * SEGMENT_LENGTH),
@@ -132,6 +146,7 @@ function pushSegment(segments: Segment[], y: number, district: District, distric
     edge: district.edge,
     rumbleWidth: district.rumbleWidth,
     clipY: 0,
+    rail: !!district.rail,
   })
 }
 
@@ -141,12 +156,13 @@ function addStretch(
   districtIndex: number,
   count: number,
   hill: number,
+  visit: number,
 ) {
   const startY = segments.length === 0 ? 0 : segments[segments.length - 1].p2.world.y
   const endY = startY + hill
   for (let n = 0; n < count; n++) {
     const t = count <= 1 ? 1 : n / (count - 1)
-    pushSegment(segments, easeInOut(startY, endY, t), district, districtIndex)
+    pushSegment(segments, easeInOut(startY, endY, t), district, districtIndex, visit)
   }
 }
 
@@ -226,17 +242,27 @@ function dressDistrict(segments: Segment[], start: number, end: number, district
   }
 
   if (district.hawkers > 0) {
-    const step = Math.max(14, Math.round(10 / district.hawkers))
-    for (let n = start + 18; n < end - 12; n += step) place(segments[n], 'hawker', leftNear)
+    const step = Math.max(6, Math.round(11 / district.hawkers))
+    const market = district.hawkers >= 0.75
+    for (let n = start + 12; n < end - 12; n += step) {
+      place(segments[n], 'hawker', n % 2 === 0 ? leftNear : leftFar)
+      if (!market) continue
+      const rightAt = n + 2
+      if (nearRightStop(rightAt)) continue
+      place(segments[rightAt], 'stall', rightNear, { label: pick(STALL_GOODS, rand) })
+      if (n + step < end - 12) place(segments[n + 4], 'stall', leftNear + 0.06, { label: pick(STALL_GOODS, rand) })
+    }
   }
 
-  district.billboards.forEach((text, index) => {
-    const at = start + Math.floor(((index + 0.5) / district.billboards.length) * span)
-    place(segments[Math.min(end - 8, at)], 'pylon', WALK_CENTER, { label: text })
-  })
+  if (!district.rail) {
+    district.billboards.forEach((text, index) => {
+      const at = start + Math.floor(((index + 0.5) / district.billboards.length) * span)
+      place(segments[Math.min(end - 8, at)], 'pylon', WALK_CENTER, { label: text })
+    })
 
-  for (let n = start + 24; n < end - 20; n += 42) {
-    if (district.billboards.length === 0) place(segments[n], 'pylon', WALK_CENTER, { label: district.sign })
+    for (let n = start + 24; n < end - 20; n += 42) {
+      if (district.billboards.length === 0) place(segments[n], 'pylon', WALK_CENTER, { label: district.sign })
+    }
   }
 
   const extraWait = Math.max(2, district.passengers.length)
@@ -260,6 +286,31 @@ function dressDistrict(segments: Segment[], start: number, end: number, district
     place(segments[end - 5], district.landmark, DRIVE_RIGHT + 0.55, { label: district.name })
   }
   place(segments[gantryAt], 'gantry', 0, { label: district.street })
+
+  let coinLane = 0
+  for (let n = start + 16; n < end - 8; n += 9) {
+    if (nearRightStop(n)) continue
+    place(segments[n], 'coin', LANES[coinLane % 3])
+    coinLane += 1
+  }
+  for (let n = start + 30; n < end - 18; n += 46) {
+    const laneIndex = (rand() * 3) | 0
+    for (let k = 0; k < 4; k++) {
+      const at = n + k * 2
+      if (at >= end - 8 || nearRightStop(at)) continue
+      place(segments[at], 'coin', LANES[laneIndex])
+    }
+  }
+
+  let boostLane = 1
+  for (let n = start + 28; n < end - 10; n += 34) {
+    if (nearRightStop(n)) continue
+    const lane = LANES[boostLane % 3]
+    const taken = segments[n]?.sprites.some((sprite) => sprite.kind === 'coin' && Math.abs(sprite.offset - lane) < 0.08)
+    if (taken) boostLane += 1
+    place(segments[n], 'boost', LANES[boostLane % 3])
+    boostLane += 1
+  }
 
   return stops
 }
@@ -349,24 +400,54 @@ function scriptDistrict(
   }
 }
 
-export function buildTrack() {
-  const segments: Segment[] = []
-  const timeline: TimelineEvent[] = []
-  const rand = mulberry32(1849)
+export interface Track {
+  segments: Segment[]
+  timeline: TimelineEvent[]
+  rails: RailRun[]
+  length: number
+  laps: number
+  lapLength: number
+}
+
+/** Add another full pass of Ibadan onto the end of the road. Hills continue from where you are. */
+export function appendLap(track: Track) {
+  const rand = mulberry32(1849 + track.laps * 409)
+  const lap = track.laps
   DISTRICTS.forEach((district, districtIndex) => {
-    const start = segments.length
+    const start = track.segments.length
+    const visit = lap * DISTRICTS.length + districtIndex
     district.stretches.forEach((stretch) => {
-      addStretch(segments, district, districtIndex, stretch.enter + stretch.hold + stretch.leave, stretch.hill)
+      const count = stretch.enter + stretch.hold + stretch.leave
+      addStretch(
+        track.segments,
+        district,
+        districtIndex,
+        Math.round(count * AREA_SCALE),
+        stretch.hill * AREA_SCALE,
+        visit,
+      )
     })
-    const stops = dressDistrict(segments, start, segments.length, district, rand)
-    scriptDistrict(timeline, start, segments.length, district, districtIndex, stops, rand)
+    const stops = dressDistrict(track.segments, start, track.segments.length, district, rand)
+    scriptDistrict(track.timeline, start, track.segments.length, district, districtIndex, stops, rand)
+    if (district.rail) {
+      track.rails.push({
+        z0: start * SEGMENT_LENGTH,
+        z1: track.segments.length * SEGMENT_LENGTH,
+        slogans: ['IBADAN', 'PACESETTER', 'SEVEN HILLS', 'OYO STATE', district.sign],
+      })
+    }
   })
-  timeline.sort((a, b) => a.spawnAt - b.spawnAt)
-  return {
-    segments,
-    timeline,
-    length: segments.length * SEGMENT_LENGTH,
-  }
+  track.timeline.sort((a, b) => a.spawnAt - b.spawnAt)
+  track.laps += 1
+  track.length = track.segments.length * SEGMENT_LENGTH
+  if (track.lapLength === 0) track.lapLength = track.length
+}
+
+export function buildTrack(): Track {
+  const track: Track = { segments: [], timeline: [], rails: [], length: 0, laps: 0, lapLength: 0 }
+  appendLap(track)
+  appendLap(track)
+  return track
 }
 
 export function resetSprites(segments: Segment[]) {

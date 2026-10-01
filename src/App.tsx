@@ -76,7 +76,7 @@ function Timeline({ hud }: { hud: Hud }) {
   )
 }
 
-const HIGHLIGHTS = new Set(['challenge', 'iwo', 'ojoo', 'cocoa'])
+const HIGHLIGHTS = new Set(['ringroad', 'beere', 'oje', 'moniya', 'jericho', 'alakia'])
 
 const emptyHud: Hud = {
   phase: 'title',
@@ -100,6 +100,11 @@ const emptyHud: Hud = {
   best: 0,
   stalled: false,
   paused: false,
+  coins: 0,
+  boost: 1,
+  boosting: false,
+  lap: 1,
+  kmh: 0,
   lane: 1,
   ahead: [],
   warning: '',
@@ -136,7 +141,7 @@ export default function App() {
     return () => game.destroy()
   }, [])
 
-  function hold(event: PointerEvent<HTMLButtonElement>, control: 'left' | 'right' | 'brake' | 'honk', down: boolean) {
+  function hold(event: PointerEvent<HTMLButtonElement>, control: 'left' | 'right' | 'brake' | 'honk' | 'boost', down: boolean) {
     event.preventDefault()
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -159,7 +164,7 @@ export default function App() {
 
   const speedRatio = Math.max(0, hud.speed) / hud.maxSpeed
 
-  function pad(control: 'left' | 'right' | 'brake' | 'honk', label: string, className: string) {
+  function pad(control: 'left' | 'right' | 'brake' | 'honk' | 'boost', label: string, className: string) {
     return (
       <button
         type="button"
@@ -175,7 +180,10 @@ export default function App() {
   }
 
   return (
-    <main className={hud.paused ? 'app is-paused' : 'app'} onContextMenu={(event) => event.preventDefault()}>
+    <main
+      className={['app', hud.paused ? 'is-paused' : '', hud.boosting ? 'is-boosting' : ''].filter(Boolean).join(' ')}
+      onContextMenu={(event) => event.preventDefault()}
+    >
       <canvas
         ref={canvasRef}
         className="road"
@@ -203,11 +211,14 @@ export default function App() {
           <div className="where">
             <p className="kicker">{hud.street}</p>
             <h1>{hud.district}</h1>
-            <p className="addr">{hud.address}</p>
+            <p className="addr">
+              Lap {hud.lap} · {hud.address}
+            </p>
           </div>
           <div className="fare">
             <span>Fare</span>
             <strong>{naira(hud.fare)}</strong>
+            <em className="coins">{hud.coins} coins</em>
           </div>
           <div className="hud-side">
             <div className="lives" aria-label={`${hud.lives} lives left`}>
@@ -265,20 +276,22 @@ export default function App() {
       {hud.phase === 'drive' ? <Timeline hud={hud} /> : null}
       {hud.phase === 'drive' && hud.warning ? <div className="warning">{hud.warning}</div> : null}
 
-      {hud.banner ? (
-        <div className="banner">
-          <strong>{hud.banner}</strong>
-          {hud.bannerSub ? <em>{hud.bannerSub}</em> : null}
-        </div>
-      ) : null}
       {hud.toast ? <div className="toast">{hud.toast}</div> : null}
       {hud.stalled ? <div className="stall">Rolling back on {hud.district}</div> : null}
 
       {hud.phase === 'drive' ? (
         <footer className="radio">
-          <div className="meter" aria-hidden>
-            <span style={{ width: `${Math.min(100, speedRatio * 100)}%` }} />
+          <div className="meters">
+            <div className="meter" aria-label="Speed">
+              <span style={{ width: `${Math.min(100, speedRatio * 100)}%` }} />
+            </div>
+            <div className={hud.boosting ? 'meter boost on' : 'meter boost'} aria-label="Boost">
+              <span style={{ width: `${Math.min(100, hud.boost * 100)}%` }} />
+            </div>
           </div>
+          <p className="speedline">
+            {hud.kmh} km/h{hud.boosting ? ' · BOOST' : ''}
+          </p>
           <p>{hud.radio}</p>
         </footer>
       ) : null}
@@ -289,7 +302,7 @@ export default function App() {
           <p className="kicker">Ibadan Micra</p>
           <h1>Seven Hills</h1>
           <p className="lead">
-            Nine streets, one Micra. Hail a passenger, drop them on the street they call, and do not roll back on Mokola.
+            The road no dey end. Hail a passenger, pick the coins, and grab the orange bolts to fill boost. Do not roll back on Mokola.
           </p>
           <button type="button" onClick={() => gameRef.current?.startShift()}>
             Start shift
@@ -307,14 +320,18 @@ export default function App() {
             ))}
           </ul>
           <p className="more">
-            The shift ends at {finish.name}, {finish.address}. Mapo Hill is on the way up.
+            The run crosses the Ibadan local governments, from Ring Road to Moniya, then climbs Oke Are and comes back to Toll Gate.
           </p>
           <ul className="how">
-            <li>Dual carriageway with a walkway in the middle. High boards stand on that walkway.</li>
+            <li>Dual carriageway with a walkway in the middle. High boards stand on that walkway. On Toll Gate, Iwo Road, and Dugbe, a long train runs the middle instead.</li>
             <li>Your side is four lanes. White lines split them. The last lane on the right is yellow wait.</li>
+            <li>Gold coins sit in the lanes. Drive through them. Each one pays.</li>
+            <li>Orange bolts sit in the lanes too. Drive through them to fill the boost bar. It does not refill on its own.</li>
+            <li>Market streets like Oje, Bodija, and Moniya put sellers on the shoulder. Ring Road and Jericho stay quiet.</li>
+            <li>Tap Boost, Shift, W, or Up once. The Micra keeps surging until the bar runs out, so you can dodge.</li>
             <li>Left and right step one lane. Pull into yellow, slow down, and people enter. Max four.</li>
             <li>Press Owa, or the Owa button, to drop them. That is how you shout “owa!”</li>
-            <li>Honk sends keke off your line. Brake for the hill. Pause with P.</li>
+            <li>Honk sends keke off your line. Brake for the hill. Pause with P. Oke Are no be the end.</li>
           </ul>
         </section>
       ) : null}
@@ -354,6 +371,7 @@ export default function App() {
         {pad('left', 'Left', 'steer')}
         <div className="cluster">
           {pad('brake', 'Brake', 'brake')}
+          {pad('boost', 'Boost', hud.boosting ? 'boost on' : 'boost')}
           {pad('honk', 'Honk', 'honk')}
           <button type="button" className="owa-pad" onClick={() => gameRef.current?.owa()}>
             Owa

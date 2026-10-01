@@ -106,6 +106,16 @@ button {
   letter-spacing: 0;
   font-weight: 700;
 }
+.coins {
+  display: block;
+  margin-top: 2px;
+  color: #f5c400;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 .hud-side {
   display: flex;
@@ -403,9 +413,10 @@ button {
   line-height: 1.35;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
+.meters { display: flex; gap: 8px; align-items: center; }
 .meter {
   height: 8px;
-  width: min(280px, 50vw);
+  width: min(180px, 36vw);
   background: rgba(244, 230, 200, 0.25);
   border-radius: 99px;
   overflow: hidden;
@@ -414,6 +425,18 @@ button {
   display: block;
   height: 100%;
   background: #f5c400;
+}
+.meter.boost { width: min(120px, 24vw); }
+.meter.boost span { background: linear-gradient(90deg, #c4512c, #ffb000); }
+.meter.boost.on span { background: #ff7a18; box-shadow: 0 0 12px #ff7a18; }
+.speedline {
+  margin: 6px 0 0;
+  color: #f5c400;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .panel {
@@ -529,8 +552,10 @@ button {
 
 .controls .steer { flex: 1; max-width: 30vw; }
 .cluster { display: flex; gap: 8px; pointer-events: none; }
-.cluster button { pointer-events: auto; min-width: 72px; }
+.cluster button { pointer-events: auto; min-width: 64px; padding: 0 10px; }
 .controls .brake { background: #c4512c; }
+.controls .boost { background: #ff7a18; color: #1a120b; }
+.controls .boost.on { background: #ffe08a; }
 .controls .honk { background: #f5c400; color: #1a120b; }
 .controls .owa-pad { background: #f5c400; color: #1a120b; min-width: 64px; min-height: 64px; }
 
