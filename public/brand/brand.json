@@ -1,0 +1,21 @@
+{
+  "name": "Seven Hills",
+  "place": "Ibadan",
+    "tagline": "One Micra. Two lanes. Your lane is the right one.",
+  "colors": {
+    "rust": "#C4512C",
+    "rustDeep": "#8C3B22",
+    "gold": "#F5C400",
+    "cream": "#F4E6C8",
+    "green": "#1B4D3E",
+    "greenDeep": "#14352C",
+    "ink": "#1A120B"
+  },
+  "fonts": ["Bebas Neue", "Outfit"],
+  "files": {
+    "logo": "/brand/logo.svg",
+    "logoLight": "/brand/logo-light.svg",
+    "mark": "/brand/mark.svg"
+  },
+  "downloadFrom": "Flier Studio → Templates → Seven Hills. Boards: Logo Dark, Logo Light, Launch poster, X post."
+}

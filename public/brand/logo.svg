@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Seven Hills">
+  <defs>
+    <clipPath id="tile"><rect width="96" height="96" rx="22"/></clipPath>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7EB6E8"/>
+      <stop offset="1" stop-color="#F3D7A4"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="96" height="96" fill="url(#sky)"/>
+    <circle cx="74" cy="18" r="9" fill="#F5C400"/>
+    <path fill="#5A2814" d="M0 40C12 32 22 24 34 26C46 28 52 36 64 32C76 28 86 22 96 26V48H0Z"/>
+    <path fill="#8C3B22" d="M0 44C14 38 24 34 36 36C50 38 58 44 70 40C82 36 90 34 96 36V56H0Z"/>
+    <path fill="#C4512C" d="M0 50C16 46 28 44 42 46C56 48 66 52 78 48C88 45 94 46 96 47V96H0Z"/>
+    <rect x="18" y="42" width="6" height="14" fill="#5C2614"/>
+    <rect x="28" y="36" width="8" height="20" fill="#4A2212"/>
+    <path fill="#4A2212" d="M29 36h6l-3-8z"/>
+    <rect x="68" y="40" width="7" height="16" fill="#5C2614"/>
+    <path fill="#6E8A45" d="M0 58h96v38H0z"/>
+    <path fill="#3A3F44" d="M10 96L38 58h20L86 96H10Z"/>
+    <path fill="#2C3036" d="M10 96L38 58h8L48 96H10Z"/>
+    <path fill="#F5C400" opacity="0.22" d="M48 58h10L86 96H48Z"/>
+    <path fill="none" stroke="#F4E6C8" stroke-width="1.4" stroke-dasharray="3 3" d="M48 58L48 96"/>
+    <path fill="#F5C400" d="M47.4 62h1.2l.3 4h-1.8Zm-.5 8h2.2l.4 6H46.6Zm-.6 10h3.4l.6 10h-4.6Z"/>
+    <g>
+      <path fill="#D7A400" d="M56 78l3.2-7h10.2L72.6 78Z"/>
+      <rect x="54.5" y="78" width="20" height="10" rx="2.4" fill="#F5C400"/>
+      <rect x="54.5" y="81.2" width="20" height="1.6" fill="#1B4D3E"/>
+      <rect x="56" y="83.4" width="3.2" height="1.6" rx=".4" fill="#C0261C"/>
+      <rect x="70" y="83.4" width="3.2" height="1.6" rx=".4" fill="#C0261C"/>
+      <rect x="61.4" y="83.4" width="5.2" height="2" rx=".4" fill="#F4E6C8"/>
+      <rect x="55.4" y="86.4" width="4" height="3.4" rx="1" fill="#1A120B"/>
+      <rect x="70" y="86.4" width="4" height="3.4" rx="1" fill="#1A120B"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Seven Hills mark">
+  <path fill="#8C3B22" d="M4 40C16 32 26 24 38 26C50 28 56 36 68 32C80 28 88 24 92 26V50H4Z"/>
+  <path fill="#C4512C" d="M4 48C18 44 30 42 44 44C58 46 68 50 80 46C88 44 92 45 92 46V70H4Z"/>
+  <path fill="#3A3F44" d="M16 92L40 54h16L80 92H16Z"/>
+  <path fill="#2C3036" d="M16 92L40 54h6L46 92H16Z"/>
+  <path fill="#F5C400" opacity="0.28" d="M48 54h8L80 92H48Z"/>
+  <path fill="none" stroke="#F4E6C8" stroke-width="1.4" stroke-dasharray="3 3" d="M48 54L48 92"/>
+  <path fill="#F5C400" d="M47.2 58h1.6l.3 4h-2.2Zm-.6 8h2.8l.4 6h-3.6Zm-.6 10h4l.6 10h-5.2Z"/>
+  <g>
+    <path fill="#D7A400" d="M54 76l3-6.4h10L70.2 76Z"/>
+    <rect x="52.5" y="76" width="19" height="10" rx="2.4" fill="#F5C400"/>
+    <rect x="52.5" y="79" width="19" height="1.6" fill="#1B4D3E"/>
+    <rect x="54" y="81.2" width="3" height="1.6" rx=".4" fill="#C0261C"/>
+    <rect x="67" y="81.2" width="3" height="1.6" rx=".4" fill="#C0261C"/>
+    <rect x="53.4" y="84.2" width="4" height="3.2" rx="1" fill="#1A120B"/>
+    <rect x="67" y="84.2" width="4" height="3.2" rx="1" fill="#1A120B"/>
+  </g>
+</svg>

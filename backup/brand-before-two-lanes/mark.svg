@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Seven Hills mark">
+  <path fill="#C4512C" d="M8 74C8 74 12 50 28 46C42 42 46 60 58 58C72 56 74 32 90 30C94 29 94 46 94 50V76H8V74Z"/>
+  <path fill="#8C3B22" d="M8 78C20 78 22 62 38 60C54 58 58 72 72 68C84 64 88 72 94 70V78H8Z"/>
+  <rect x="78" y="16" width="6" height="16" rx="1" fill="#F4E6C8"/>
+  <path fill="#F5C400" d="M76 16h10L81 8Z"/>
+  <g>
+    <rect x="16" y="54" width="26" height="11" rx="3" fill="#F5C400"/>
+    <path fill="#F5C400" d="M20 54l4-6h9l3 6"/>
+    <path fill="#14352C" d="M22 54l3-4h7l2 4"/>
+    <rect x="16" y="58.5" width="26" height="2.5" fill="#1B4D3E"/>
+    <circle cx="23" cy="66" r="3.1" fill="#1A120B"/>
+    <circle cx="35" cy="66" r="3.1" fill="#1A120B"/>
+    <circle cx="23" cy="66" r="1.15" fill="#F4E6C8"/>
+    <circle cx="35" cy="66" r="1.15" fill="#F4E6C8"/>
+  </g>
+</svg>
